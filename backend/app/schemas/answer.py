@@ -24,6 +24,11 @@ xp_service.XP_PER_CORRECT_ANSWER for a correct one. Surfacing this in
 the response is how a caller (or future frontend) actually observes
 that XP was awarded, rather than the award happening silently
 server-side with no visible confirmation.
+
+`hearts_remaining` added in Task 11 — the user's heart count after
+this submission (unchanged if correct, decremented by 1 if wrong,
+never below 0). Lets a caller detect "that answer just cost the last
+heart" without a separate GET /profile call.
 """
 from typing import Literal
 
@@ -38,3 +43,4 @@ class AnswerSubmission(BaseModel):
 class AnswerResult(BaseModel):
     result: Literal["correct", "wrong"]
     xp_awarded: int
+    hearts_remaining: int

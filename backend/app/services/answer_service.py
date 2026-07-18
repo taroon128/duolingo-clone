@@ -4,18 +4,19 @@ Business logic for the Answer Validation API.
 Task 9 gave this module exactly one job: check a submitted answer
 against the exercise's stored correct answer and return a verdict —
 `_check_answer` and `check_answer` below are UNCHANGED since that task
-and remain a pure, side-effect-free validator. Task 10 adds XP
-awarding on top, as a separate `evaluate_submission` function that
-composes `check_answer` with `xp_service.award_xp`, rather than
-modifying the validator itself. See this module's docstring history
-and answers.py's router for the full reasoning on why they're kept
-apart.
+and remain a pure, side-effect-free validator. Task 10 added XP
+awarding as a separate `evaluate_submission` function that composes
+`check_answer` with `xp_service.award_xp`. Task 11 extends that same
+`evaluate_submission` orchestrator with the hearts rule: check hearts
+before doing anything else, and lose one on a wrong answer — see
+hearts_service.py for why that logic lives there and not here.
 """
 from sqlalchemy.orm import Session
 
 from app.models import Exercise, ExerciseType
 from app.services.user_service import get_default_user
 from app.services.xp_service import award_xp, XP_PER_CORRECT_ANSWER
+from app.services.hearts_service import require_hearts, lose_heart
 
 
 def _check_answer(exercise_type: ExerciseType, payload: dict, submitted_answer) -> bool:
@@ -90,28 +91,35 @@ def check_answer(db: Session, exercise_id: int, submitted_answer) -> bool | None
     return _check_answer(exercise.type, exercise.payload, submitted_answer)
 
 
-def evaluate_submission(db: Session, exercise_id: int, submitted_answer) -> tuple[bool, int] | None:
+def evaluate_submission(db: Session, exercise_id: int, submitted_answer) -> tuple[bool, int, int] | None:
     """
-    Task 10: the orchestration layer. Validates the answer (via the
-    untouched check_answer above), and — only if it's correct — awards
-    XP via the XP service. Returns None if the exercise doesn't exist
-    (same convention as check_answer); otherwise (is_correct, xp_awarded).
+    Task 10: composes check_answer with XP awarding.
+    Task 11: also composes it with the hearts rule.
 
-    If somehow no user exists yet (unseeded database), the answer is
-    still validated correctly, but XP is simply not awarded to anyone —
-    this mirrors learning_path_service's "still valid to display, just
-    at its starting state" approach rather than raising an error over
-    a missing user for what is otherwise a successful validation.
+    Returns None if the exercise doesn't exist (same convention as
+    check_answer). Raises hearts_service.OutOfHeartsError if the user
+    already has 0 hearts — checked BEFORE looking at the submitted
+    answer at all, since being out of hearts blocks any submission,
+    not just this specific exercise. Otherwise returns
+    (is_correct, xp_awarded, hearts_remaining).
     """
-    is_correct = check_answer(db, exercise_id, submitted_answer)
-    if is_correct is None:
+    exercise = db.query(Exercise).filter(Exercise.id == exercise_id).first()
+    if exercise is None:
         return None
 
+    user = get_default_user(db)
+    require_hearts(user)  # raises OutOfHeartsError if the user exists and has 0 hearts
+
+    is_correct = _check_answer(exercise.type, exercise.payload, submitted_answer)
+
     xp_awarded = 0
-    if is_correct:
-        user = get_default_user(db)
-        if user is not None:
+    hearts_remaining = user.hearts if user is not None else 0
+
+    if user is not None:
+        if is_correct:
             award_xp(db, user, XP_PER_CORRECT_ANSWER)
             xp_awarded = XP_PER_CORRECT_ANSWER
+        else:
+            hearts_remaining = lose_heart(db, user)
 
-    return is_correct, xp_awarded
+    return is_correct, xp_awarded, hearts_remaining
