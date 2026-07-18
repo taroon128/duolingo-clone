@@ -79,6 +79,11 @@ from app.routers import lessons
 
 app.include_router(lessons.router)
 
+# Task 9: Answer Validation API
+from app.routers import answers
+
+app.include_router(answers.router)
+
 # Remaining routers not built yet — uncomment each pair as it's built.
 # from app.routers import exercises, progress, users, leaderboard
 # app.include_router(exercises.router)
