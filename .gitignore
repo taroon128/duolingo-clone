@@ -14,6 +14,8 @@ node_modules/
 out/
 .env.local
 .env*.local
+next-env.d.ts
+*.tsbuildinfo
 
 # OS
 .DS_Store
