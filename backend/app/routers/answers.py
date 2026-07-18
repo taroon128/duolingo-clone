@@ -1,11 +1,14 @@
 """
 Answer validation router.
 
-Task 9 scope: exactly one endpoint — POST /answer, checking a
-submitted answer against an exercise's stored correct answer and
-returning "correct" or "wrong". No XP, hearts, or progress are touched
-here — see answer_service.py's docstring for why "do not update XP" is
-read as a blanket no-side-effects rule, not just "XP specifically."
+Task 9 gave this exactly one endpoint — POST /answer — checking a
+submitted answer and returning "correct" or "wrong". Task 10 adds XP
+awarding: the router now calls answer_service.evaluate_submission
+(the new orchestrator) instead of check_answer directly, and the
+response includes how much XP was awarded. The router itself still
+does no business logic — it just calls one service function and
+shapes the result into a response, same as every other router in this
+project.
 
 Router naming note: "exercises" was the name Task 4's scaffold
 anticipated, but that's reserved for plausible future generic
@@ -19,14 +22,15 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.schemas.answer import AnswerSubmission, AnswerResult
-from app.services.answer_service import check_answer
+from app.services.answer_service import evaluate_submission
 
 router = APIRouter(tags=["answers"])
 
 
 @router.post("/answer", response_model=AnswerResult)
 def submit_answer(submission: AnswerSubmission, db: Session = Depends(get_db)):
-    is_correct = check_answer(db, submission.question_id, submission.answer)
-    if is_correct is None:
+    outcome = evaluate_submission(db, submission.question_id, submission.answer)
+    if outcome is None:
         raise HTTPException(status_code=404, detail=f"Exercise {submission.question_id} not found")
-    return AnswerResult(result="correct" if is_correct else "wrong")
+    is_correct, xp_awarded = outcome
+    return AnswerResult(result="correct" if is_correct else "wrong", xp_awarded=xp_awarded)

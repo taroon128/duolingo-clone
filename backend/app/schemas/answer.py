@@ -18,6 +18,12 @@ A loose type is used here rather than 5 separate request schemas,
 mirroring how Exercise.payload itself is a flexible JSON blob whose
 shape is interpreted per-type in the service layer, not the schema
 layer.
+
+`xp_awarded` added in Task 10 — 0 for a wrong answer, or
+xp_service.XP_PER_CORRECT_ANSWER for a correct one. Surfacing this in
+the response is how a caller (or future frontend) actually observes
+that XP was awarded, rather than the award happening silently
+server-side with no visible confirmation.
 """
 from typing import Literal
 
@@ -31,3 +37,4 @@ class AnswerSubmission(BaseModel):
 
 class AnswerResult(BaseModel):
     result: Literal["correct", "wrong"]
+    xp_awarded: int

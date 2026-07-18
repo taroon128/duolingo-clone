@@ -8,8 +8,9 @@ the first time.
 """
 from sqlalchemy.orm import Session
 
-from app.models import Unit, Skill, User
+from app.models import Unit, Skill
 from app.schemas.learning_path import SkillOut, SkillStatus, UnitOut
+from app.services.user_service import get_default_user
 
 
 def _crowns_by_skill_id(db: Session) -> dict[int, int]:
@@ -25,12 +26,12 @@ def _crowns_by_skill_id(db: Session) -> dict[int, int]:
     its starting state, unlike the Profile API which had nothing
     meaningful to show at all without a user.
 
-    Note: this duplicates the one-line "first user" lookup already in
-    profile_service.py rather than importing a shared helper. Worth
-    extracting into something like services/user_service.py if a third
-    place ends up needing the same lookup.
+    Uses the shared get_default_user() helper (Task 10) — this lookup
+    used to be duplicated inline here and in profile_service.py, with a
+    note that a third call site would be the right trigger to extract
+    it. answer_service.py's XP awarding is that third place.
     """
-    user = db.query(User).first()
+    user = get_default_user(db)
     if user is None:
         return {}
     return {progress.skill_id: progress.crowns for progress in user.progress_entries}

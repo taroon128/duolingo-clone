@@ -1,18 +1,21 @@
 """
 Business logic for the Answer Validation API.
 
-Task 9 scope: check a submitted answer against the exercise's stored
-correct answer and return a verdict — nothing else. Deliberately NO
-database writes here at all: no XP, no hearts, no Progress/crowns, no
-streak. "Do not update XP" is read here as a blanket "no persistence
-side effects", not "XP specifically, but hearts/progress are fair
-game" — a real-time per-question endpoint is the wrong place to apply
-lesson-level rewards one at a time anyway; that belongs in a future
-"complete lesson" step that applies them together, atomically, once.
+Task 9 gave this module exactly one job: check a submitted answer
+against the exercise's stored correct answer and return a verdict —
+`_check_answer` and `check_answer` below are UNCHANGED since that task
+and remain a pure, side-effect-free validator. Task 10 adds XP
+awarding on top, as a separate `evaluate_submission` function that
+composes `check_answer` with `xp_service.award_xp`, rather than
+modifying the validator itself. See this module's docstring history
+and answers.py's router for the full reasoning on why they're kept
+apart.
 """
 from sqlalchemy.orm import Session
 
 from app.models import Exercise, ExerciseType
+from app.services.user_service import get_default_user
+from app.services.xp_service import award_xp, XP_PER_CORRECT_ANSWER
 
 
 def _check_answer(exercise_type: ExerciseType, payload: dict, submitted_answer) -> bool:
@@ -75,8 +78,40 @@ def check_answer(db: Session, exercise_id: int, submitted_answer) -> bool | None
     convention already used in profile_service.get_profile and
     lesson_service.get_lesson, leaving it to the router (not this
     function) to translate that into an actual 404 response.
+
+    Unchanged since Task 9. Task 10's XP awarding is added via
+    evaluate_submission() below, which CALLS this function rather than
+    editing it — a tested, pure validator shouldn't need to change just
+    because a new concern (rewards) is being layered on top of it.
     """
     exercise = db.query(Exercise).filter(Exercise.id == exercise_id).first()
     if exercise is None:
         return None
     return _check_answer(exercise.type, exercise.payload, submitted_answer)
+
+
+def evaluate_submission(db: Session, exercise_id: int, submitted_answer) -> tuple[bool, int] | None:
+    """
+    Task 10: the orchestration layer. Validates the answer (via the
+    untouched check_answer above), and — only if it's correct — awards
+    XP via the XP service. Returns None if the exercise doesn't exist
+    (same convention as check_answer); otherwise (is_correct, xp_awarded).
+
+    If somehow no user exists yet (unseeded database), the answer is
+    still validated correctly, but XP is simply not awarded to anyone —
+    this mirrors learning_path_service's "still valid to display, just
+    at its starting state" approach rather than raising an error over
+    a missing user for what is otherwise a successful validation.
+    """
+    is_correct = check_answer(db, exercise_id, submitted_answer)
+    if is_correct is None:
+        return None
+
+    xp_awarded = 0
+    if is_correct:
+        user = get_default_user(db)
+        if user is not None:
+            award_xp(db, user, XP_PER_CORRECT_ANSWER)
+            xp_awarded = XP_PER_CORRECT_ANSWER
+
+    return is_correct, xp_awarded

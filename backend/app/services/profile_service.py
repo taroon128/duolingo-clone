@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 
 from app.models import User
 from app.schemas.profile import Achievement, ProfileResponse
+from app.services.user_service import get_default_user
 
 
 def _compute_achievements(user: User) -> list[Achievement]:
@@ -54,7 +55,7 @@ def get_profile(db: Session) -> ProfileResponse | None:
     from an HTTP router. Translating "no profile" into an actual 404
     response is the router's job, not this function's.
     """
-    user = db.query(User).first()
+    user = get_default_user(db)
     if user is None:
         return None
 
