@@ -68,10 +68,14 @@ from app.routers import profile
 
 app.include_router(profile.router)
 
+# Task 7: Learning Path APIs
+from app.routers import units, skills
+
+app.include_router(units.router)
+app.include_router(skills.router)
+
 # Remaining routers not built yet — uncomment each pair as it's built.
-# from app.routers import units, skills, lessons, exercises, progress, users, leaderboard
-# app.include_router(units.router)
-# app.include_router(skills.router)
+# from app.routers import lessons, exercises, progress, users, leaderboard
 # app.include_router(lessons.router)
 # app.include_router(exercises.router)
 # app.include_router(progress.router)
