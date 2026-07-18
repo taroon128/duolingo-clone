@@ -1,22 +1,32 @@
-import type { Unit, Profile } from "@/types";
-
 /**
- * Mock data for Task 16 — deliberately mirrors the REAL seed.py values
- * (Tasks 5, 7, 12) exactly: same 3 units, same 6 skills, same crowns
- * (Greetings=1, everything else=0, matching the demo user's actual
- * progress). When a later task swaps profileService/learningPathService
- * to real fetch() calls, the home screen should render IDENTICALLY —
- * that sameness is the actual proof the wiring worked, not a coincidence.
+ * Mock data for Task 16 (home screen) — no backend connection.
+ *
+ * Values deliberately match what seed.py actually inserts:
+ * - Same unit titles, colors, and order_index values
+ * - Same skill titles and levels=5 per skill
+ * - Greetings: crowns=1 (completed once), status=unlocked
+ * - Introductions: crowns=0, status=unlocked (in progress in seed)
+ * - Everything else: crowns=0, status=locked
+ *
+ * This means when the real API is connected (Task 17+), the screen
+ * will look identical to what it does now — no visual surprise.
  */
-export const mockProfile: Profile = {
+import type { Profile, Unit } from "@/types";
+
+export const MOCK_PROFILE: Profile = {
   name: "Demo Learner",
   xp: 30,
   streak: 3,
   hearts: 4,
-  gems: 50,
+  achievements: [
+    { name: "Getting Started", description: "Earn your first XP", unlocked: true },
+    { name: "3-Day Streak", description: "Practice 3 days in a row", unlocked: true },
+    { name: "First Crown", description: "Earn your first crown", unlocked: true },
+    { name: "Perfect Week", description: "Practice 7 days in a row", unlocked: false },
+  ],
 };
 
-export const mockUnits: Unit[] = [
+export const MOCK_UNITS: Unit[] = [
   {
     id: 1,
     title: "Basics",
@@ -25,26 +35,16 @@ export const mockUnits: Unit[] = [
     color_hex: "#58CC02",
     skills: [
       {
-        id: 1,
-        unit_id: 1,
-        title: "Greetings",
+        id: 1, unit_id: 1, title: "Greetings",
         description: "Say hello and goodbye",
-        order_index: 0,
-        icon_name: "waving-hand",
-        levels: 5,
-        crowns: 1,
-        status: "unlocked",
+        order_index: 0, icon_name: "message-circle",
+        levels: 5, crowns: 1, status: "unlocked",
       },
       {
-        id: 2,
-        unit_id: 1,
-        title: "Introductions",
-        description: "Introduce yourself to someone new",
-        order_index: 1,
-        icon_name: "user-plus",
-        levels: 5,
-        crowns: 0,
-        status: "unlocked",
+        id: 2, unit_id: 1, title: "Introductions",
+        description: "Introduce yourself",
+        order_index: 1, icon_name: "user",
+        levels: 5, crowns: 0, status: "unlocked",
       },
     ],
   },
@@ -56,26 +56,16 @@ export const mockUnits: Unit[] = [
     color_hex: "#1CB0F6",
     skills: [
       {
-        id: 3,
-        unit_id: 2,
-        title: "Common Phrases",
+        id: 3, unit_id: 2, title: "Common Phrases",
         description: "Everyday polite expressions",
-        order_index: 0,
-        icon_name: "message-2",
-        levels: 5,
-        crowns: 0,
-        status: "locked",
+        order_index: 0, icon_name: "message-square",
+        levels: 5, crowns: 0, status: "locked",
       },
       {
-        id: 4,
-        unit_id: 2,
-        title: "Questions",
+        id: 4, unit_id: 2, title: "Questions",
         description: "Ask basic questions",
-        order_index: 1,
-        icon_name: "help-circle",
-        levels: 5,
-        crowns: 0,
-        status: "locked",
+        order_index: 1, icon_name: "help-circle",
+        levels: 5, crowns: 0, status: "locked",
       },
     ],
   },
@@ -87,26 +77,16 @@ export const mockUnits: Unit[] = [
     color_hex: "#FF9600",
     skills: [
       {
-        id: 5,
-        unit_id: 3,
-        title: "Food & Drink",
+        id: 5, unit_id: 3, title: "Food & Drink",
         description: "Name common foods and drinks",
-        order_index: 0,
-        icon_name: "cup",
-        levels: 5,
-        crowns: 0,
-        status: "locked",
+        order_index: 0, icon_name: "coffee",
+        levels: 5, crowns: 0, status: "locked",
       },
       {
-        id: 6,
-        unit_id: 3,
-        title: "Ordering",
+        id: 6, unit_id: 3, title: "Ordering",
         description: "Order food at a restaurant",
-        order_index: 1,
-        icon_name: "receipt",
-        levels: 5,
-        crowns: 0,
-        status: "locked",
+        order_index: 1, icon_name: "utensils",
+        levels: 5, crowns: 0, status: "locked",
       },
     ],
   },

@@ -1,43 +1,48 @@
-"use client";
-
-import { useState } from "react";
+/**
+ * SkillPath — Task 16.
+ *
+ * Lays out an array of SkillNodes in the zigzag pattern Duolingo uses
+ * on its learning path — the single most recognizable layout element
+ * of the whole app. Nodes alternate left-of-center / center /
+ * right-of-center, creating the gentle S-curve as you scroll down.
+ *
+ * Implementation: each node is absolutely offset from a
+ * centered baseline using one of three horizontal positions
+ * (left, center, right), cycling through a predefined sequence.
+ * The container grows tall enough to give each node its own row.
+ *
+ * Server Component — SkillNode itself is "use client" for its
+ * onClick; this wrapper has no interactivity of its own.
+ */
 import SkillNode from "./SkillNode";
 import type { Skill } from "@/types";
 
-/**
- * SkillPath — renders one unit's skills as Duolingo's signature
- * zigzag path (alternating horizontal offset per node).
- *
- * "use client" — tracks which node was last selected, to show simple
- * inline feedback. Real lesson navigation isn't implemented here: no
- * lesson player page exists yet, and this task explicitly says "do
- * not connect backend" — so selecting a node is intentionally inert
- * beyond this lightweight feedback line, not a placeholder bug.
- */
 interface SkillPathProps {
   skills: Skill[];
   color: string;
 }
 
-const OFFSETS = ["translate-x-0", "-translate-x-16", "translate-x-16"]; // center, left, right — cycles
+// Duolingo's actual zigzag offsets — 5-step repeating pattern.
+// Expressed as Tailwind margin-left values applied to each node.
+const ZIGZAG: string[] = [
+  "ml-0",       // center
+  "ml-16",      // right
+  "ml-28",      // far right
+  "ml-16",      // right
+  "ml-0",       // center
+];
 
 export default function SkillPath({ skills, color }: SkillPathProps) {
-  const [selected, setSelected] = useState<Skill | null>(null);
-
   return (
-    <div className="flex flex-col items-center gap-6">
+    <div className="flex w-full max-w-sm flex-col items-start gap-6 px-8 py-2">
       {skills.map((skill, index) => (
-        <div key={skill.id} className={OFFSETS[index % OFFSETS.length]}>
-          <SkillNode skill={skill} color={color} onSelect={setSelected} />
+        <div
+          key={skill.id}
+          className={ZIGZAG[index % ZIGZAG.length]}
+        >
+          <SkillNode skill={skill} color={color} />
         </div>
       ))}
-      {selected && (
-        <p className="text-sm text-duo-text">
-          {selected.status === "locked"
-            ? `${selected.title} is locked — complete the previous skill first.`
-            : `Selected: ${selected.title} (${selected.crowns}/${selected.levels} crowns)`}
-        </p>
-      )}
     </div>
   );
 }
