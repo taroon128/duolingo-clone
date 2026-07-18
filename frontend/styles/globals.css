@@ -8,6 +8,29 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+
+  /*
+   * Duolingo brand palette, reused as design tokens across every
+   * component in components/. Task 15's Button/Card/ProgressBar
+   * variants and Heart/XPBadge colors all draw from these — one
+   * definition, not a hex value hardcoded per component.
+   *
+   * duo-green and duo-blue are the exact same hex values already used
+   * for Unit.color_hex in seed.py ("Basics" / "Phrases") — frontend
+   * and backend agree on the same brand colors, not two palettes that
+   * happen to look similar.
+   */
+  --color-duo-green: #58cc02;
+  --color-duo-green-dark: #4caf02;
+  --color-duo-blue: #1cb0f6;
+  --color-duo-blue-dark: #1899d6;
+  --color-duo-red: #ff4b4b;
+  --color-duo-red-dark: #ea2b2b;
+  --color-duo-gold: #ffc800;
+  --color-duo-gold-dark: #e5b400;
+  --color-duo-gray: #e5e5e5;
+  --color-duo-gray-dark: #afafaf;
+  --color-duo-text: #3c3c3c;
 }
 
 @media (prefers-color-scheme: dark) {
