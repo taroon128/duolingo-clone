@@ -84,9 +84,13 @@ from app.routers import answers
 
 app.include_router(answers.router)
 
+# Task 12: Progress API
+from app.routers import progress
+
+app.include_router(progress.router)
+
 # Remaining routers not built yet — uncomment each pair as it's built.
-# from app.routers import exercises, progress, users, leaderboard
+# from app.routers import exercises, users, leaderboard
 # app.include_router(exercises.router)
-# app.include_router(progress.router)
 # app.include_router(users.router)
 # app.include_router(leaderboard.router)
