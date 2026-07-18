@@ -74,9 +74,13 @@ from app.routers import units, skills
 app.include_router(units.router)
 app.include_router(skills.router)
 
+# Task 8: Lesson APIs
+from app.routers import lessons
+
+app.include_router(lessons.router)
+
 # Remaining routers not built yet — uncomment each pair as it's built.
-# from app.routers import lessons, exercises, progress, users, leaderboard
-# app.include_router(lessons.router)
+# from app.routers import exercises, progress, users, leaderboard
 # app.include_router(exercises.router)
 # app.include_router(progress.router)
 # app.include_router(users.router)
