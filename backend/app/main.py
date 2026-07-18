@@ -58,10 +58,17 @@ app.add_middleware(
 )
 
 # --- Routers ---
-# Uncomment each pair as its router is built in an upcoming task.
-# Nothing here is active yet — there is currently zero API surface
-# beyond FastAPI's own automatic /docs, /redoc, and /openapi.json.
-#
+# The Task 4 scaffold anticipated a generic "users" router; this task
+# calls the feature "Profile APIs" with a specific GET /profile route,
+# so it gets its own dedicated router file instead of being folded into
+# that placeholder. "users" stays reserved below for future generic
+# account-management endpoints, if any get added beyond just the
+# profile view.
+from app.routers import profile
+
+app.include_router(profile.router)
+
+# Remaining routers not built yet — uncomment each pair as it's built.
 # from app.routers import units, skills, lessons, exercises, progress, users, leaderboard
 # app.include_router(units.router)
 # app.include_router(skills.router)
